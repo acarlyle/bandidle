@@ -4,68 +4,47 @@ var neutralfan = 1000000;
 var angryfan = 0;
 var prestige = 0;
 
-
-var cookies = 0;
-var cursors = 0;
+const DAYSINYEAR = 365;
 
 
-//Choose either save method
+
+//If supported, saves game to html5 storage
 function save() {
-	var save = {
-		cash: cash,
-		happyfan: happyfan,
-		neutralfan: neutralfan,
-		angryfan: angryfan,
-		prestige: prestige
-	}
-	localStorage.setItem("save",JSON.stringify(save));
-}
-
-//Function gets called every time page loads
-function onload() {
-	///Ian's save function
-	load();
-	///Alec's save function
-	//loadSave();
-}
-
-function load() {
-	var savegame = JSON.parse(localStorage.getItem("save"));
-	if (typeof savegame.cash !== "undefined") cash = savegame.cash;
-	if (typeof savegame.happyfan !== "undefined") happyfan = savegame.happyfan;
-	if (typeof savegame.neutralfan !== "undefined") neutralfan = savegame.neutralfan;
-	if (typeof savegame.angryfan !== "undefined") angryfan = savegame.angryfan;
-	updateCurrencies();
-}
-
-function saveGame(){
     if (supports_html5_storage()){
-        
-        var save = {
-          cookies: cookies,
-          cursors: cursors
-        }
+			
+		var save = {
+			cash: cash,
+			happyfan: happyfan,
+			neutralfan: neutralfan,
+			angryfan: angryfan,
+			prestige: prestige
+		}
         
         localStorage.setItem("save",JSON.stringify(save));
         //console.log("Saved!  cookies at: " + cookies);
         
     }
-};
-
-function hardReset() {
-	localStorage.removeItem("save")
 }
 
-///Alec save functions
-function loadSave(){
-    if (supports_html5_storage()){
-        var savedGame = JSON.parse(localStorage.getItem("save"));
-        if (typeof savedGame.cookies !== "undefined") cookies = savedGame.cookies;
-        if (typeof savedGame.cursors !== "undefined") cursors = savedGame.cursors;
-        console.log("Loaded save! cookies now: " + cookies);
-    }
-};
+//Function gets called every time page loads
+function onload() {
+	load();
+}
 
+//Checks if can load from html5 then loads from html5
+function load() {
+	if (supports_html5_storage()){
+		var savegame = JSON.parse(localStorage.getItem("save"));
+		if (typeof savegame.cash !== "undefined") cash = savegame.cash;
+		if (typeof savegame.happyfan !== "undefined") happyfan = savegame.happyfan;
+		if (typeof savegame.neutralfan !== "undefined") neutralfan = savegame.neutralfan;
+		if (typeof savegame.angryfan !== "undefined") angryfan = savegame.angryfan;
+		updateCurrencies();
+		console.log("Loaded save! cash now: " + cash);
+	}
+}
+
+//Removes html5 save data
 function wipeSave(){
     if (supports_html5_storage()){
         localStorage.removeItem("save");
@@ -75,6 +54,8 @@ function wipeSave(){
 };
 
 
+
+///Tool functions
 function supports_html5_storage() {
   try {
     return 'localStorage' in window && window['localStorage'] !== null;
@@ -82,9 +63,6 @@ function supports_html5_storage() {
     return false;
   }
 }
-
-
-
 
 
 
@@ -96,9 +74,9 @@ function addCash(number){
 
 //Simulates change in population, fans decrease naturally while neutrals increase
 function populationGrowth() { //A day
-	happyfan -= Math.floor((happyfan* .008)/356)
-	neutralfan += Math.floor(((neutralfan*.0011)/356)+((happyfan*.0011)/356)+((angryfan*.0011)/356))
-	angryfan -= Math.floor((angryfan* .008)/356)
+	happyfan -= Math.floor((happyfan* .008)/DAYSINYEAR)
+	neutralfan += Math.floor(((neutralfan*.0011)/356)+((happyfan*.0011)/DAYSINYEAR)+((angryfan*.0011)/356))
+	angryfan -= Math.floor((angryfan* .008)/DAYSINYEAR)
 	document.getElementById('happyfan').innerHTML = prettify(happyfan);
 	document.getElementById('neutralfan').innerHTML = prettify(neutralfan);
 	document.getElementById('angryfan').innerHTML = prettify(angryfan);
@@ -136,6 +114,7 @@ function openTab(tabName) {
     document.getElementById(tabName).style.display = "block";
 }
 
+//Adds html elements to page 
 function addInstrument() {
     // Hide all elements with class="tabcontent" by default */
 	var btn = document.createElement("INPUT");        // Create a <button> element
@@ -147,25 +126,6 @@ function addInstrument() {
 }
 
 
-///Alec cookie funcitons
-function clickCookie(number){
-    cookies = cookies + number;
-	document.getElementById("cookies").innerHTML = cookies; //updates cookies variable
-};
-
-function buyCursor(){
-    var cursorCost = Math.floor(10 * Math.pow(1.1,cursors));
-    if(cookies >= cursorCost){                                 
-        cursors = cursors + 1;                                 
-    	cookies = cookies - cursorCost;                        
-        document.getElementById('cursors').innerHTML = cursors; 
-        document.getElementById('cookies').innerHTML = cookies;  
-    };
-    var nextCost = Math.floor(10 * Math.pow(1.1,cursors));       
-    document.getElementById('cursorCost').innerHTML = nextCost;  
-};
-
-
 
 ///When webpage loaded these functions are called
 //Start game on whichever tab is tagged as defaultTab
@@ -174,10 +134,6 @@ document.getElementById("defaultTab").click();
 //Update currencies on page load
 updateCurrencies();
 window.setInterval(function(){ //this function is called every {1000} ms
-
 	populationGrowth();
-    clickCookie(cursors);
-    
-    saveGame();
     
 }, 1000);
